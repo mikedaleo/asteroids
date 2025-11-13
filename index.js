@@ -16,12 +16,16 @@ class Player {
 
     draw() {
         c.save();
+
         c.translate(this.position.x, this.position.y);
         c.rotate(this.rotation);
         c.translate(-this.position.x, -this.position.y);
+        
+        c.beginPath();
         c.arc(this.position.x, this.position.y, 5, 0, Math.PI * 2, false);
         c.fillStyle = 'red';
         c.fill()
+        c.closePath();
 
         c.beginPath();
         c.moveTo(this.position.x + 30, this.position.y);
@@ -47,13 +51,35 @@ class Projectile {
         this.velocity = velocity;
         this.radius = 5;
     }
-    
+
     draw() {
         c.beginPath();
         c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
         c.closePath();
         c.fillStyle = 'white';
         c.fill();
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
+class Asteroid {
+    constructor({ position, velocity, radius }) {
+        this.position = position;
+        this.velocity = velocity;
+        this.radius = radius;
+    }
+
+    draw() {
+        c.beginPath();
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
+        c.closePath();
+        c.strokeStyle = 'white';
+        c.stroke();
     }
 
     update() {
@@ -87,6 +113,60 @@ const ROTATIONAL_SPEED = 0.05;
 const FRICTION = 0.97;
 
 const projectiles = [];
+const asteroids = [];
+
+window.setInterval(() => {
+    const index = Math.floor(Math.random() * 4);
+    let x, y;
+    let vx, vy;
+    let radius = 50 * Math.random() + 10;
+
+    switch (index) {
+        // left
+        case 0:
+            x = 0 - radius
+            y = Math.random() * canvas.height;
+            vx = 1;
+            vy = 0;
+            break;
+        // bottom
+        case 1:
+            x = Math.random() * canvas.width;
+            y = canvas.height + radius;
+            vx = 0;
+            vy = -1;
+            break;
+        // right
+        case 2:
+            x = canvas.width + radius;
+            y = Math.random() * canvas.height;
+            vx = -1;
+            vy = 0;
+            break;
+        // top
+        case 3:
+            x = Math.random() * canvas.width;
+            y = 0 - radius;
+            vx = 0;
+            vy = 1;
+            break;
+    }
+            asteroids.push(
+                new Asteroid({
+                    position: {
+                        x: x,
+                        y: y,
+                    },
+                    velocity: {
+                        x: vx,
+                        y: vy,
+                    },
+                    radius,
+                })
+            )
+
+            console.log(asteroids);
+}, 3000);
 
 function animate() {
     window.requestAnimationFrame(animate);
@@ -98,8 +178,34 @@ function animate() {
     for (let i = projectiles.length - 1; i >= 0; i--) {
         const projectile = projectiles[i];
         projectile.update();
+
+        // garbage collection for projectiles
+        if (projectile.position.x + projectile.radius < 0 ||
+            projectile.position.x - projectile.radius > canvas.width ||
+            projectile.position.y + projectile.radius < 0 ||
+            projectile.position.y - projectile.radius > canvas.height
+        ) {
+            projectiles.splice(i, 1);
+        }
     }
-  
+
+    // asteroid management
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        const asteroid = asteroids[i];
+        asteroid.update();
+
+        
+        // garbage collection for projectiles
+        if (asteroid.position.x + asteroid.radius < 0 ||
+            asteroid.position.x - asteroid.radius > canvas.width ||
+            asteroid.position.y + asteroid.radius < 0 ||
+            asteroid.position.y - asteroid.radius > canvas.height
+        ) {
+            asteroids.splice(i, 1);
+        }
+
+    }
+
     if (keys.w.pressed) {
         player.velocity.x = Math.cos(player.rotation) * SPEED;
         player.velocity.y = Math.sin(player.rotation) * SPEED;
@@ -139,7 +245,7 @@ window.addEventListener('keydown', (event) => {
             break;
     };
 })
-    window.addEventListener('keyup', (event) => {
+window.addEventListener('keyup', (event) => {
     switch (event.code) {
         case 'KeyW':
             keys.w.pressed = false;
