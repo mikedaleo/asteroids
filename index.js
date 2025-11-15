@@ -21,16 +21,18 @@ class Player {
         c.rotate(this.rotation);
         c.translate(-this.position.x, -this.position.y);
         
-        c.beginPath();
-        c.arc(this.position.x, this.position.y, 5, 0, Math.PI * 2, false);
-        c.fillStyle = 'red';
-        c.fill()
-        c.closePath();
+        // c.beginPath();
+        // c.arc(this.position.x, this.position.y, 5, 0, Math.PI * 2, false);
+        // c.fillStyle = 'red';
+        // c.fill()
+        // c.closePath();
 
         c.beginPath();
         c.moveTo(this.position.x + 30, this.position.y);
         c.lineTo(this.position.x - 10, this.position.y - 10);
         c.lineTo(this.position.x - 10, this.position.y + 10);
+        c.fillStyle = 'gray';
+        c.fill();
         c.closePath();
 
         c.strokeStyle = 'white';
@@ -56,7 +58,7 @@ class Projectile {
         c.beginPath();
         c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
         c.closePath();
-        c.fillStyle = 'white';
+        c.fillStyle = 'red';
         c.fill();
     }
 
@@ -168,6 +170,18 @@ window.setInterval(() => {
             console.log(asteroids);
 }, 3000);
 
+function circleCollision(circle1, circle2) {
+    const xDifference = circle2.position.x - circle1.position.x;
+    const yDifference = circle2.position.y - circle1.position.y;
+    const distance = Math.sqrt(xDifference * xDifference + yDifference * yDifference);
+    
+    if (distance <= circle1.radius + circle2.radius) {
+        return true;
+    }
+
+    return false
+}
+
 function animate() {
     window.requestAnimationFrame(animate);
     c.fillStyle = 'black';
@@ -194,7 +208,7 @@ function animate() {
         const asteroid = asteroids[i];
         asteroid.update();
 
-        
+
         // garbage collection for projectiles
         if (asteroid.position.x + asteroid.radius < 0 ||
             asteroid.position.x - asteroid.radius > canvas.width ||
@@ -202,6 +216,15 @@ function animate() {
             asteroid.position.y - asteroid.radius > canvas.height
         ) {
             asteroids.splice(i, 1);
+        }
+
+         for (let j = projectiles.length - 1; j >= 0; j--){
+            const projectile = projectiles[j];
+
+            if (circleCollision(asteroid, projectile)){
+                asteroids.splice(j, 1);
+                projectiles.splice(j, 1);
+            }
         }
 
     }
