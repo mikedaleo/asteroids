@@ -7,6 +7,17 @@ canvas.height = window.innerHeight;
 c.fillStyle = 'black';
 c.fillRect(0, 0, canvas.width, canvas.height);
 
+let SCORE = 0;
+c.font = '50px Arial';
+c.fillStyle = 'white';
+c.textAlign = 'right';
+c.textBaseline = 'top';
+
+setTimeout(() => {
+    c.fillText(`Score: ${SCORE}`, canvas.width - 50, 50);
+}, 500);
+
+
 class Player {
     constructor({ position, velocity }) {
         this.position = position;
@@ -31,7 +42,7 @@ class Player {
         c.moveTo(this.position.x + 30, this.position.y);
         c.lineTo(this.position.x - 10, this.position.y - 10);
         c.lineTo(this.position.x - 10, this.position.y + 10);
-        c.fillStyle = 'gray';
+        c.fillStyle = 'purple';
         c.fill();
         c.closePath();
 
@@ -204,49 +215,49 @@ function circleCollision(circle1, circle2) {
 }
 
 function circleTriangleCollision(circle, triangle) {
-  // Check if the circle is colliding with any of the triangle's edges
-  for (let i = 0; i < 3; i++) {
-    let start = triangle[i]
-    let end = triangle[(i + 1) % 3]
+    // Check if the circle is colliding with any of the triangle's edges
+    for (let i = 0; i < 3; i++) {
+        let start = triangle[i]
+        let end = triangle[(i + 1) % 3]
 
-    let dx = end.x - start.x
-    let dy = end.y - start.y
-    let length = Math.sqrt(dx * dx + dy * dy)
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let length = Math.sqrt(dx * dx + dy * dy)
 
-    let dot =
-      ((circle.position.x - start.x) * dx +
-        (circle.position.y - start.y) * dy) /
-      Math.pow(length, 2)
+        let dot =
+            ((circle.position.x - start.x) * dx +
+                (circle.position.y - start.y) * dy) /
+            Math.pow(length, 2)
 
-    let closestX = start.x + dot * dx
-    let closestY = start.y + dot * dy
+        let closestX = start.x + dot * dx
+        let closestY = start.y + dot * dy
 
-    if (!isPointOnLineSegment(closestX, closestY, start, end)) {
-      closestX = closestX < start.x ? start.x : end.x
-      closestY = closestY < start.y ? start.y : end.y
+        if (!isPointOnLineSegment(closestX, closestY, start, end)) {
+            closestX = closestX < start.x ? start.x : end.x
+            closestY = closestY < start.y ? start.y : end.y
+        }
+
+        dx = closestX - circle.position.x
+        dy = closestY - circle.position.y
+
+        let distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance <= circle.radius) {
+            return true
+        }
     }
 
-    dx = closestX - circle.position.x
-    dy = closestY - circle.position.y
-
-    let distance = Math.sqrt(dx * dx + dy * dy)
-
-    if (distance <= circle.radius) {
-      return true
-    }
-  }
-
-  // No collision
-  return false
+    // No collision
+    return false
 }
 
 function isPointOnLineSegment(x, y, start, end) {
-  return (
-    x >= Math.min(start.x, end.x) &&
-    x <= Math.max(start.x, end.x) &&
-    y >= Math.min(start.y, end.y) &&
-    y <= Math.max(start.y, end.y)
-  )
+    return (
+        x >= Math.min(start.x, end.x) &&
+        x <= Math.max(start.x, end.x) &&
+        y >= Math.min(start.y, end.y) &&
+        y <= Math.max(start.y, end.y)
+    )
 }
 
 function animate() {
@@ -275,12 +286,12 @@ function animate() {
         const asteroid = asteroids[i];
         asteroid.update();
 
-        if(circleTriangleCollision(asteroid, player.getVertices())){
+        if (circleTriangleCollision(asteroid, player.getVertices())) {
             c.font = '200px Arial';
             c.fillStyle = 'white';
             c.textAlign = 'center'
             c.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-        
+
             console.log('GAME OVER');
             window.cancelAnimationFrame(animationId);
             clearInterval(intervalId)
@@ -302,6 +313,8 @@ function animate() {
             if (circleCollision(asteroid, projectile)) {
                 asteroids.splice(i, 1);
                 projectiles.splice(j, 1);
+                SCORE++
+
             }
         }
 
@@ -317,6 +330,12 @@ function animate() {
 
     if (keys.d.pressed) player.rotation += ROTATIONAL_SPEED;
     else if (keys.a.pressed) player.rotation -= ROTATIONAL_SPEED;
+
+    c.font = '50px Arial';
+    c.fillStyle = 'white';
+    c.textAlign = 'right';
+    c.textBaseline = 'top';
+    c.fillText(`Score: ${SCORE}`, canvas.width - 200, 50);
 }
 
 animate();
